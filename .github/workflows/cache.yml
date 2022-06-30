@@ -2,7 +2,7 @@ name: Cache
 on:
   push:
     branches:
-      - 'develop'
+      - 'main'
 
 jobs:
   Caching_CVAT:
