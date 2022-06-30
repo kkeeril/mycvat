@@ -61,6 +61,15 @@ jobs:
             ${{ runner.os }}-build-elasticsearch-${{ steps.get-sha.outputs.sha }}
             ${{ runner.os }}-build-elasticsearch-
 
+      - uses: actions/cache@v3
+        id: logstash-cache-action
+        with:
+          path: /tmp/cvat_cache_logstash
+          key: ${{ runner.os }}-build-logstash-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-build-logstash-${{ steps.get-sha.outputs.sha }}
+            ${{ runner.os }}-build-logstash-
+
       # - name: Check cache hit
       #   if: steps.server-cache-action.outputs.cache-hit != 'false' ||
       #       steps.ui-cache-action.outputs.cache-hit != 'false'
