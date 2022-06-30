@@ -281,8 +281,8 @@ jobs:
           cd ./tests
           npm ci
 
-          if [[ ${{ matrix.specs }} == 'canvas_3d_functionality' || ${{ matrix.specs }} == 'canvas_3d_functionality_2' ]]
-          then
+          shopt -s extglob
+          if [[ ${{ matrix.specs }} == canvas3d_* ]]; then
             npx cypress run \
               --headed \
               --config-file cypress_canvas3d.json \
