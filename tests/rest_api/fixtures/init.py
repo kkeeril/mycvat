@@ -148,6 +148,7 @@ def services(request):
         pytest.exit(f"All testing  containers are stopped: {', '.join(out)}", returncode=0)
 
     started_services = start_services(rebuild)
+    print(started_services)
     wait_for_server()
 
     exec_cvat("python manage.py loaddata /tmp/data.json")
