@@ -105,5 +105,5 @@ jobs:
           rm -rf /tmp/cvat_cache_ui
           mv /tmp/cvat_cache_ui-new /tmp/cvat_cache_ui
 
-          rm -rf /tmp/cvat_cache_elasticsearch-new
+          rm -rf /tmp/cvat_cache_elasticsearch
           mv /tmp/cvat_cache_elasticsearch-new /tmp/cvat_cache_elasticsearch

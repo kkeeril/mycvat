@@ -148,8 +148,7 @@ jobs:
           cache-from: type=local,src=/tmp/cvat_cache_elasticsearch
           tags: cvat_elasticsearch:latest
           load: true
-          build-args:
-            ELK_VERSION: 6.8.23
+          build-args: ELK_VERSION=6.8.23
 
       - name: CVAT server. Extract metadata (tags, labels) for Docker
         id: meta-server
