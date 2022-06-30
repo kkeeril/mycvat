@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<annotations>
+  <version>1.1</version>
+  <meta>
+    <project>
+      <id>1</id>
+      <name>Main project</name>
+      <bugtracker></bugtracker>
+      <created>2022-06-23 13:39:11.005791+00:00</created>
+      <updated>2022-06-23 13:39:33.617489+00:00</updated>
+      <tasks>
+        <task>
+          <id>128</id>
+          <name>Case 103</name>
+          <size>1</size>
+          <mode>annotation</mode>
+          <overlap>0</overlap>
+          <bugtracker></bugtracker>
+          <created>2022-06-23 13:39:14.993689+00:00</created>
+          <updated>2022-06-23 13:39:15.172003+00:00</updated>
+          <subset>Test</subset>
+          <start_frame>0</start_frame>
+          <stop_frame>0</stop_frame>
+          <frame_filter></frame_filter>
+          <segments>
+            <segment>
+              <id>326</id>
+              <start>0</start>
+              <stop>0</stop>
+              <url>http://localhost:8080/?id=326</url>
+            </segment>
+          </segments>
+          <owner>
+            <username>admin</username>
+            <email>admin@localhost.company</email>
+          </owner>
+          <assignee></assignee>
+        </task>
+      </tasks>
+      <labels>
+        <label>
+          <name>Base label for Main project</name>
+          <color>#97b15f</color>
+          <attributes>
+            <attribute>
+              <name>Attr for Base label for Main project</name>
+              <mutable>False</mutable>
+              <input_type>text</input_type>
+              <default_value>Some default value for type Text</default_value>
+              <values>Some default value for type Text</values>
+            </attribute>
+            <attribute>
+              <name>Attr 2</name>
+              <mutable>False</mutable>
+              <input_type>text</input_type>
+              <default_value>Attr value 2</default_value>
+              <values>Attr value 2</values>
+            </attribute>
+          </attributes>
+        </label>
+      </labels>
+      <subsets>Test</subsets>
+      <owner>
+        <username>admin</username>
+        <email>admin@localhost.company</email>
+      </owner>
+      <assignee></assignee>
+    </project>
+    <dumped>2022-06-23 13:39:35.876329+00:00</dumped>
+  </meta>
+  <image id="0" name="image_case_103_1.png" subset="Test" task_id="128" width="800" height="800">
+  </image>
+</annotations>

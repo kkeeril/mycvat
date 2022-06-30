@@ -1,0 +1,9 @@
+{
+  "rest_api/test_cloud_storages.py::TestPatchCloudStorage::test_org_user_update_coud_storage[maintainer-False-True-2-2]": true,
+  "rest_api/test_cloud_storages.py::TestPostCloudStorage::test_sandbox_user_create_cloud_storage[user-True]": true,
+  "rest_api/test_jobs.py::TestGetAnnotations::test_user_get_job_annotations[groups4-True-True-]": true,
+  "rest_api/test_organizations.py::TestGetOrganizations::test_can_see_specific_organization[business-None-False-False]": true,
+  "rest_api/test_organizations.py::TestGetOrganizations::test_can_see_specific_organization[user-None-False-False]": true,
+  "rest_api/test_organizations.py::TestGetOrganizations::test_can_see_specific_organization[worker-None-False-False]": true,
+  "rest_api/test_projects.py::TestPostProjects::test_if_user_cannot_have_more_than_3_projects": true
+}
