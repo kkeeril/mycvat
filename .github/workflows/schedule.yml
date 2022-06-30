@@ -300,7 +300,7 @@ jobs:
               --browser chrome \
               --spec 'cypress/integration/${{ matrix.specs }}/**/*.js,cypress/integration/remove_users_tasks_projects_organizations.js'
             mv ./.nyc_output/out.json ./.nyc_output/out_${{ matrix.specs }}.json
-          fi
+          done
 
       - name: Creating a log file from "cvat" container logs
         if: failure()
