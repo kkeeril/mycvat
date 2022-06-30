@@ -52,13 +52,13 @@ jobs:
             ${{ runner.os }}-build-ui-${{ steps.get-sha.outputs.sha }}
             ${{ runner.os }}-build-ui-
 
-      - name: Check cache hit
-        if: steps.server-cache-action.outputs.cache-hit != 'false' ||
-            steps.ui-cache-action.outputs.cache-hit != 'false'
-        uses: actions/github-script@v3
-        with:
-          script: |
-            core.setFailed('Caching failed due to a cache hit occurred')
+      # - name: Check cache hit
+      #   if: steps.server-cache-action.outputs.cache-hit != 'false' ||
+      #       steps.ui-cache-action.outputs.cache-hit != 'false'
+      #   uses: actions/github-script@v3
+      #   with:
+      #     script: |
+      #       core.setFailed('Caching failed due to a cache hit occurred')
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
