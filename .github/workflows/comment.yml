@@ -73,25 +73,30 @@ jobs:
         run: |
           BODY=""
 
-          if [[ "${{ needs.run-full.outputs.build_failed }}" == "true" ]]
+          if [[ "${{ needs.run-full.outputs.build_status }}" == "failed" ]]
           then
             BODY=$BODY":x: Build failed"
           else
             BODY=$BODY":heavy_check_mark: Build completed successfully"
           fi
 
-          if [[ "${{ needs.run-full.outputs.unit_testing_failed }}" == "true" ]]
+          if [[ "${{ needs.run-full.outputs.unit_testing_status }}" == "failed" ]]
           then
             BODY=$BODY"\n:x: Server tests failed"
           else
             BODY=$BODY"\n:heavy_check_mark: Server tests passed"
           fi
 
-          if [[ "${{ needs.run-full.outputs.e2e_testing_failed }}" == "true" ]]
+          if [[ "${{ needs.run-full.outputs.e2e_testing_status }}" == "failed" ]]
           then
             BODY=$BODY"\n:x: E2E tests failed"
           else
             BODY=$BODY"\n:heavy_check_mark: E2E tests passed"
+          fi
+
+          if [[ "${{ needs.run-full.outputs.e2e_testing_status }}" == "cancelled" ]]
+          then
+            BODY=":no_entry_sign: Workflow cancelled"
           fi
 
           BODY=$BODY"\n :page_facing_up: See logs [here](${WORKFLOW_RUN_URL})"

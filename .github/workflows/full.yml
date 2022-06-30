@@ -13,12 +13,12 @@ on:
       DOCKERHUB_TOKEN:
         required: true
     outputs:
-      build_failed:
-        value: ${{ jobs.build.outputs.failed }}
-      unit_testing_failed:
-        value: ${{ jobs.unit_testing.outputs.failed }}
-      e2e_testing_failed:
-        value: ${{ jobs.e2e_testing.outputs.failed }}
+      build_status:
+        value: ${{ jobs.build.outputs.status }}
+      unit_testing_status:
+        value: ${{ jobs.unit_testing.outputs.status }}
+      e2e_testing_status:
+        value: ${{ jobs.e2e_testing.outputs.status }}
 
 env:
   SERVER_IMAGE_TEST_REPO: cvat_server
@@ -55,7 +55,7 @@ jobs:
     needs: search_cache
     runs-on: ubuntu-latest
     outputs:
-      failed: ${{ steps.set-status.outputs.failed }}
+      status: ${{ steps.set-status.outputs.status }}
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -100,14 +100,21 @@ jobs:
         id: set-status
         if: ${{ failure() }} || ${{ cancelled() }}
         run: |
-          STATUS="true"
-          echo ::set-output name=failed::${STATUS}
+          if [[ ${{ failure() }} ]]; then
+            STATUS="failed"
+          fi
+
+          if [[ ${{ cancelled() }} ]]; then
+            STATUS="cancelled"
+          fi
+
+          echo ::set-output name=status:${STATUS}
 
   unit_testing:
     needs: [build, search_cache]
     runs-on: ubuntu-latest
     outputs:
-      failed: ${{ steps.set-status.outputs.failed }}
+      status: ${{ steps.set-status.outputs.status }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -219,14 +226,21 @@ jobs:
         id: set-status
         if: ${{ failure() }} || ${{ cancelled() }}
         run: |
-          STATUS="true"
-          echo ::set-output name=failed::${STATUS}
+          if [[ ${{ failure() }} ]]; then
+            STATUS="failed"
+          fi
+
+          if [[ ${{ cancelled() }} ]]; then
+            STATUS="cancelled"
+          fi
+
+          echo ::set-output name=status:${STATUS}
 
   e2e_testing:
     needs: [build, search_cache]
     runs-on: ubuntu-latest
     outputs:
-      failed: ${{ steps.set-status.outputs.failed }}
+      status: ${{ steps.set-status.outputs.status }}
     strategy:
       fail-fast: false
       matrix:
@@ -349,5 +363,12 @@ jobs:
         id: set-status
         if: ${{ failure() }} || ${{ cancelled() }}
         run: |
-          STATUS="true"
-          echo ::set-output name=failed::${STATUS}
+          if [[ ${{ failure() }} ]]; then
+            STATUS="failed"
+          fi
+
+          if [[ ${{ cancelled() }} ]]; then
+            STATUS="cancelled"
+          fi
+
+          echo ::set-output name=status:${STATUS}
