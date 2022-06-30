@@ -98,8 +98,9 @@ jobs:
 
       - name: Set status code
         id: set-status
+        if: ${{ failure() }} || ${{ cancelled() }}
         run: |
-          STATUS="false"
+          STATUS="true"
           echo ::set-output name=failed::${STATUS}
 
   unit_testing:
@@ -216,7 +217,10 @@ jobs:
 
       - name: Set status code
         id: set-status
-        run: echo ::set-output name=failed::"false"
+        if: ${{ failure() }} || ${{ cancelled() }}
+        run: |
+          STATUS="true"
+          echo ::set-output name=failed::${STATUS}
 
   e2e_testing:
     needs: [build, search_cache]
@@ -343,4 +347,7 @@ jobs:
 
       - name: Set status code
         id: set-status
-        run: echo ::set-output name=failed::"false"
+        if: ${{ failure() }} || ${{ cancelled() }}
+        run: |
+          STATUS="true"
+          echo ::set-output name=failed::${STATUS}
