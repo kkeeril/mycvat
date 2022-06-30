@@ -94,11 +94,6 @@ jobs:
             BODY=$BODY"\n:heavy_check_mark: E2E tests passed"
           fi
 
-          if [[ "${{ needs.run-full.outputs.e2e_testing_status }}" == "cancelled" ]]
-          then
-            BODY=":no_entry_sign: Workflow cancelled"
-          fi
-
           BODY=$BODY"\n :page_facing_up: See logs [here](${WORKFLOW_RUN_URL})"
           BODY=$(echo -e $BODY)
 

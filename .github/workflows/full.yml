@@ -100,14 +100,7 @@ jobs:
         id: set-status
         if: ${{ failure() }} || ${{ cancelled() }}
         run: |
-          if [[ ${{ failure() }} ]]; then
-            STATUS="failed"
-          fi
-
-          if [[ ${{ cancelled() }} ]]; then
-            STATUS="cancelled"
-          fi
-
+          STATUS="failed"
           echo ::set-output name=status:${STATUS}
 
   unit_testing:
@@ -226,14 +219,7 @@ jobs:
         id: set-status
         if: ${{ failure() }} || ${{ cancelled() }}
         run: |
-          if [[ ${{ failure() }} ]]; then
-            STATUS="failed"
-          fi
-
-          if [[ ${{ cancelled() }} ]]; then
-            STATUS="cancelled"
-          fi
-
+          STATUS="failed"
           echo ::set-output name=status:${STATUS}
 
   e2e_testing:
@@ -363,12 +349,5 @@ jobs:
         id: set-status
         if: ${{ failure() }} || ${{ cancelled() }}
         run: |
-          if [[ ${{ failure() }} ]]; then
-            STATUS="failed"
-          fi
-
-          if [[ ${{ cancelled() }} ]]; then
-            STATUS="cancelled"
-          fi
-
+          STATUS="failed"
           echo ::set-output name=status:${STATUS}

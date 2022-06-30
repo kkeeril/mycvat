@@ -60,7 +60,8 @@ def _run(command, capture_output=True):
             proc = run(command.split(), check=True)  # nosec
         else:
             proc = run(command.split(), check=True, stdout=PIPE, stderr=PIPE)  # nosec
-        return proc.stdout.decode(), proc.stderr.decode()
+            return proc.stdout.decode(), proc.stderr.decode()
+        return '', ''
     except CalledProcessError as exc:
         pytest.exit(
             f"Command failed: {command}.\n"
