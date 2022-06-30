@@ -3,6 +3,10 @@ on:
   schedule:
     - cron: '0 22 * * *'
   workflow_dispatch:
+
+env:
+  SERVER_IMAGE_TEST_REPO: cvat_server
+
 jobs:
   check_updates:
     if: github.ref == 'refs/heads/develop'
