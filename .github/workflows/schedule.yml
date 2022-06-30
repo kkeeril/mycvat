@@ -179,13 +179,6 @@ jobs:
   e2e_testing:
     needs: build
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        specs: ['actions_tasks', 'actions_tasks2', 'actions_tasks3',
-                'actions_objects', 'actions_objects2', 'actions_users',
-                'actions_projects_models', 'actions_organizations', 'issues_prs',
-                'issues_prs2', 'canvas3d_functionality', 'canvas3d_functionality_2']
     steps:
       - uses: actions/checkout@v2
 
@@ -286,15 +279,23 @@ jobs:
           cd ./tests
           npm ci
 
-          shopt -s extglob
-          if [[ ${{ matrix.specs }} == canvas3d_* ]]; then
+          TESTS_3D=('canvas3d_functionality' 'canvas3d_functionality_2')
+          for testset in ${TESTS_3D[@]};
+          do
             npx cypress run \
               --headed \
               --config-file cypress_canvas3d.json \
               --browser chrome \
-              --spec 'cypress/integration/${{ matrix.specs }}/**/*.js,cypress/integration/remove_users_tasks_projects_organizations.js'
-            mv ./.nyc_output/out.json ./.nyc_output/out_${{ matrix.specs }}.json
-          else
+              --spec 'cypress/integration/${testset}/**/*.js,cypress/integration/remove_users_tasks_projects_organizations.js'
+            mv ./.nyc_output/out.json ./.nyc_output/out_$testset.json
+          done
+
+          TESTS=('actions_tasks' 'actions_tasks2' 'actions_tasks3' \
+                 'actions_objects' 'actions_objects2' 'actions_users' \
+                 'actions_projects_models' 'actions_organizations' 'issues_prs' \
+                 'issues_prs2' 'canvas3d_functionality' 'canvas3d_functionality_2')
+          for testset in ${TESTS[@]};
+          do
             npx cypress run \
               --browser chrome \
               --spec 'cypress/integration/${{ matrix.specs }}/**/*.js,cypress/integration/remove_users_tasks_projects_organizations.js'
