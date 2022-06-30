@@ -187,6 +187,8 @@ jobs:
                 'actions_projects_models', 'actions_organizations', 'issues_prs',
                 'issues_prs2', 'canvas3d_functionality', 'canvas3d_functionality_2']
     steps:
+      - uses: actions/checkout@v2
+
       - uses: actions/setup-node@v2
         with:
             node-version: '16.x'
