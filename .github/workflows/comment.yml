@@ -63,6 +63,7 @@ jobs:
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
   send_status:
+  to do fix this job
     runs-on: ubuntu-latest
     needs: [run-full, verify_author]
     if: always()
@@ -73,21 +74,21 @@ jobs:
         run: |
           BODY=""
 
-          if [[ "${{ needs.run-full.outputs.build_status }}" == "failed" ]]
+          if [[ "${{ needs.run-full.outputs.build_failed }}" == "true" ]]
           then
             BODY=$BODY":x: Build failed"
           else
             BODY=$BODY":heavy_check_mark: Build completed successfully"
           fi
 
-          if [[ "${{ needs.run-full.outputs.unit_testing_status }}" == "failed" ]]
+          if [[ "${{ needs.run-full.outputs.unit_testing_failed }}" == "true" ]]
           then
             BODY=$BODY"\n:x: Server tests failed"
           else
             BODY=$BODY"\n:heavy_check_mark: Server tests passed"
           fi
 
-          if [[ "${{ needs.run-full.outputs.e2e_testing_status }}" == "failed" ]]
+          if [[ "${{ needs.run-full.outputs.e2e_testing_failed }}" == "true" ]]
           then
             BODY=$BODY"\n:x: E2E tests failed"
           else
