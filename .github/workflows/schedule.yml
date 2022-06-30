@@ -278,16 +278,16 @@ jobs:
           if [[ ${{ matrix.specs }} == 'canvas_3d_functionality' || ${{ matrix.specs }} == 'canvas_3d_functionality_2']]
           then
             npx cypress run \
+              --headed \
+              --config-file cypress_canvas3d.json \
               --browser chrome \
-              --spec 'cypress/integration/${testset}/**/*.js,cypress/integration/remove_users_tasks_projects_organizations.js'
-            mv ./.nyc_output/out.json ./.nyc_output/out_$testset.json
+              --spec 'cypress/integration/${{ matrix.specs }}/**/*.js,cypress/integration/remove_users_tasks_projects_organizations.js'
+            mv ./.nyc_output/out.json ./.nyc_output/out_${{ matrix.specs }}.json
           else
             npx cypress run \
-              --headed \
               --browser chrome \
-              --config-file cypress_canvas3d.json \
-              --spec 'cypress/integration/${testset}/**/*.js,cypress/integration/remove_users_tasks_projects_organizations.js'
-            mv ./.nyc_output/out.json ./.nyc_output/out_$testset.json
+              --spec 'cypress/integration/${{ matrix.specs }}/**/*.js,cypress/integration/remove_users_tasks_projects_organizations.js'
+            mv ./.nyc_output/out.json ./.nyc_output/out_${{ matrix.specs }}.json
           fi
 
       - name: Creating a log file from "cvat" container logs
