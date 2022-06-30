@@ -54,9 +54,12 @@ def pytest_addoption(parser):
     )
 
 
-def _run(command):
+def _run(command, capture_output=True):
     try:
-        proc = run(command.split(), check=True, stdout=PIPE, stderr=PIPE)  # nosec
+        if not capture_output:
+            proc = run(command.split(), check=True)  # nosec
+        else:
+            proc = run(command.split(), check=True, stdout=PIPE, stderr=PIPE)  # nosec
         return proc.stdout.decode(), proc.stderr.decode()
     except CalledProcessError as exc:
         pytest.exit(
@@ -116,13 +119,11 @@ def start_services(rebuild=False):
             f"List of running containers: {', '.join(running_containers)}"
         )
 
-    out = _run(f"docker-compose -p {PREFIX} -f {' -f '.join(DC_FILES)} up -d " + "--build" * rebuild)[1]
+    _run(f"docker-compose -p {PREFIX} -f {' -f '.join(DC_FILES)} up -d " + "--build" * rebuild, capture_output=False)
 
     restore_data_volumes()
     docker_cp(osp.join(CVAT_DB_DIR, "restore.sql"), f"{PREFIX}_cvat_db_1:/tmp/restore.sql")
     docker_cp(osp.join(CVAT_DB_DIR, "data.json"), f"{PREFIX}_cvat_1:/tmp/data.json")
-
-    return out
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -147,8 +148,7 @@ def services(request):
         out = set(l.split()[1] for l in out.split("\n") if "done" in l.split())
         pytest.exit(f"All testing  containers are stopped: {', '.join(out)}", returncode=0)
 
-    started_services = start_services(rebuild)
-    print(started_services)
+    start_services(rebuild)
     wait_for_server()
 
     exec_cvat("python manage.py loaddata /tmp/data.json")
@@ -156,7 +156,7 @@ def services(request):
 
     if start:
         pytest.exit(
-            f"All necessary containers have been created and started: {started_services}",
+            f"All necessary containers have been created and started:",
             returncode=0,
         )
 
