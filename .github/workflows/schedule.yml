@@ -228,17 +228,17 @@ jobs:
           docker pull ${{ steps.meta-server.outputs.tags }}
           docker tag ${{ steps.meta-server.outputs.tags }} openvino/cvat_server
 
-      - name: Instrumentation of the code then rebuilding the CVAT UI
-        run: |
-          npm ci
-          npm run coverage
-          docker-compose -f docker-compose.yml -f docker-compose.dev.yml -f components/serverless/docker-compose.serverless.yml build cvat_ui
+      # - name: Instrumentation of the code then rebuilding the CVAT UI
+      #   run: |
+      #     npm ci
+      #     npm run coverage
+      #     docker-compose -f docker-compose.yml -f docker-compose.dev.yml -f components/serverless/docker-compose.serverless.yml build cvat_ui
 
-      - name: End-to-end. Run CVAT instance
+      - name: Run CVAT instance
         run: |
           docker-compose -f docker-compose.yml -f docker-compose.dev.yml -f ./tests/docker-compose.email.yml -f tests/docker-compose.file_share.yml -f components/serverless/docker-compose.serverless.yml up -d
 
-      - name: End-to-end. Waiting for server
+      - name: Waiting for server
         id: wait-server
         env:
           API_ABOUT_PAGE: "localhost:8080/api/server/about"
@@ -268,7 +268,7 @@ jobs:
           script: |
             core.setFailed('Workflow failed: incorrect response from server. See logs artifact to get more info')
 
-      - name: End-to-end. Add user for tests
+      - name: Add user for tests
         env:
           DJANGO_SU_NAME: "admin"
           DJANGO_SU_EMAIL: "admin@localhost.company"
@@ -276,12 +276,12 @@ jobs:
         run: |
           docker exec -i cvat /bin/bash -c "echo \"from django.contrib.auth.models import User; User.objects.create_superuser('${DJANGO_SU_NAME}', '${DJANGO_SU_EMAIL}', '${DJANGO_SU_PASSWORD}')\" | python3 ~/manage.py shell"
 
-      - name: End-to-end. Run tests
+      - name: Run tests
         run: |
           cd ./tests
           npm ci
 
-          if [[ ${{ matrix.specs }} == 'canvas_3d_functionality' || ${{ matrix.specs }} == 'canvas_3d_functionality_2']]
+          if [[ ${{ matrix.specs }} == 'canvas_3d_functionality' || ${{ matrix.specs }} == 'canvas_3d_functionality_2' ]]
           then
             npx cypress run \
               --headed \
