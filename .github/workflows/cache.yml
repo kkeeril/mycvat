@@ -95,8 +95,7 @@ jobs:
           file: ./components/analytics/elasticsearch/Dockerfile
           cache-from: type=local,src=/tmp/cvat_cache_elasticsearch
           cache-to: type=local,dest=/tmp/cvat_cache_elasticsearch-new
-          build-args:
-            ELK_VERSION: 6.8.23
+          build-args: ELK_VERSION=6.8.23
 
       - name: Moving cache
         run: |
