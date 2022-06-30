@@ -4,11 +4,11 @@ on:
     branches:
       - 'master'
       - 'develop'
-  pull_request:
-    types: [edited, ready_for_review, opened, synchronize, reopened]
-    paths-ignore:
-      - 'site/**'
-      - '**/*.md'
+  # pull_request:
+  #   types: [edited, ready_for_review, opened, synchronize, reopened]
+  #   paths-ignore:
+  #     - 'site/**'
+  #     - '**/*.md'
 
 env:
   SERVER_IMAGE_TEST_REPO: cvat_server

@@ -228,15 +228,20 @@ jobs:
           docker pull ${{ steps.meta-server.outputs.tags }}
           docker tag ${{ steps.meta-server.outputs.tags }} openvino/cvat_server
 
-      # - name: Instrumentation of the code then rebuilding the CVAT UI
-      #   run: |
-      #     npm ci
-      #     npm run coverage
-      #     docker-compose -f docker-compose.yml -f docker-compose.dev.yml -f components/serverless/docker-compose.serverless.yml build cvat_ui
+      - name: Instrumentation of the code then rebuilding the CVAT UI
+        run: |
+          npm ci
+          npm run coverage
+          docker-compose -f docker-compose.yml -f docker-compose.dev.yml -f components/serverless/docker-compose.serverless.yml build cvat_ui
 
       - name: Run CVAT instance
         run: |
-          docker-compose -f docker-compose.yml -f docker-compose.dev.yml -f ./tests/docker-compose.email.yml -f tests/docker-compose.file_share.yml -f components/serverless/docker-compose.serverless.yml up -d
+          docker-compose \
+            -f docker-compose.yml \
+            -f docker-compose.dev.yml \
+            -f ./tests/docker-compose.email.yml \
+            -f tests/docker-compose.file_share.yml \
+            -f components/serverless/docker-compose.serverless.yml up -d
 
       - name: Waiting for server
         id: wait-server
