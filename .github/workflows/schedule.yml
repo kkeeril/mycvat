@@ -195,12 +195,6 @@ jobs:
           path: /tmp/cvat_cache_ui
           key: ${{ runner.os }}-build-ui-${{ needs.search_cache.outputs.sha }}
 
-      - name: Getting CVAT Elasticsearch cache from the default branch
-        uses: actions/cache@v3
-        with:
-          path: /tmp/cvat_cache_elasticsearch
-          key: ${{ runner.os }}-build-elasticsearch-${{ needs.search_cache.outputs.sha }}
-
       - name: Building CVAT UI image
         uses: docker/build-push-action@v2
         with:
@@ -209,16 +203,6 @@ jobs:
           cache-from: type=local,src=/tmp/cvat_cache_ui
           tags: openvino/cvat_ui:latest
           load: true
-
-      - name: Building CVAT Elasticsearch
-        uses: docker/build-push-action@v2
-        with:
-          context: ./components/analytics/elasticsearch/
-          file: ./components/analytics/elasticsearch/Dockerfile
-          cache-from: type=local,src=/tmp/cvat_cache_elasticsearch
-          tags: cvat_elasticsearch:latest
-          load: true
-          build-args: ELK_VERSION=6.8.23
 
       - name: CVAT server. Extract metadata (tags, labels) for Docker
         id: meta-server

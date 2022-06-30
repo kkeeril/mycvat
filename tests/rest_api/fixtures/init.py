@@ -105,7 +105,7 @@ def wait_for_server():
         response = requests.get(get_api_url("users/self"))
         if response.status_code == HTTPStatus.UNAUTHORIZED:
             return
-        sleep(5)
+        sleep(2)
     pytest.exit("Cannot get answer from server")
 
 
