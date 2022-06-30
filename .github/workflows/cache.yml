@@ -97,6 +97,15 @@ jobs:
           cache-to: type=local,dest=/tmp/cvat_cache_elasticsearch-new
           build-args: ELK_VERSION=6.8.23
 
+      - name: Caching CVAT Logstash
+        uses: docker/build-push-action@v2
+        with:
+          context: ./components/analytics/logstash/
+          file: ./components/analytics/logstash/Dockerfile
+          cache-from: type=local,src=/tmp/cvat_cache_logstash
+          cache-to: type=local,dest=/tmp/cvat_cache_logstash-new
+          build-args: ELK_VERSION=6.8.23
+
       - name: Moving cache
         run: |
           rm -rf /tmp/cvat_cache_server
@@ -107,3 +116,6 @@ jobs:
 
           rm -rf /tmp/cvat_cache_elasticsearch
           mv /tmp/cvat_cache_elasticsearch-new /tmp/cvat_cache_elasticsearch
+
+          rm -rf /tmp/cvat_cache_logstash
+          mv /tmp/cvat_cache_logstash-new /tmp/cvat_cache_logstash

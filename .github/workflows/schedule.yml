@@ -116,14 +116,14 @@ jobs:
         with:
           python-version: '3.8'
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
       - name: Getting CVAT UI cache from the default branch
         uses: actions/cache@v3
         with:
           path: /tmp/cvat_cache_ui
           key: ${{ runner.os }}-build-ui-${{ needs.search_cache.outputs.sha }}
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
 
       - name: Building CVAT UI image
         uses: docker/build-push-action@v2

@@ -104,8 +104,10 @@ def wait_for_server():
     for _ in range(60):
         response = requests.get(get_api_url("users/self"))
         if response.status_code == HTTPStatus.UNAUTHORIZED:
-            break
+            return
         sleep(5)
+    pytest.exit("Cannot get answer from server")
+
 
 def restore_data_volumes():
     docker_cp(osp.join(CVAT_DB_DIR, "cvat_data.tar.bz2"), f"{PREFIX}_cvat_1:/tmp/cvat_data.tar.bz2")
