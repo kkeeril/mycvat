@@ -6,6 +6,8 @@ on:
         type: string
         required: true
     secrets:
+      DOCKERHUB_WORKSPACE:
+        required: true
       DOCKERHUB_USERNAME:
         required: true
       DOCKERHUB_TOKEN:
@@ -53,7 +55,6 @@ jobs:
     needs: search_cache
     runs-on: ubuntu-latest
     outputs:
-      comment_id: ${{ steps.send-status.outputs.comment_id }}
       failed: ${{ steps.set-status.outputs.failed }}
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -78,7 +79,7 @@ jobs:
         id: meta-server
         uses: docker/metadata-action@master
         with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.SERVER_IMAGE_TEST_REPO }}
+          images: ${{ secrets.DOCKERHUB_WORKSPACE }}/${{ env.SERVER_IMAGE_TEST_REPO }}
           tags: |
             type=raw,value=${{ inputs.ref }}
 
@@ -115,6 +116,9 @@ jobs:
         with:
           python-version: '3.8'
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@master
+
       - name: Getting CVAT UI cache from the default branch
         uses: actions/cache@v3
         with:
@@ -125,10 +129,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: /tmp/cvat_cache_elasticsearch
-          key: ${{ runner.os }}-build-ui-${{ needs.search_cache.outputs.sha }}
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@master
+          key: ${{ runner.os }}-build-elasticsearch-${{ needs.search_cache.outputs.sha }}
 
       - name: Building CVAT UI image
         uses: docker/build-push-action@v2
@@ -139,14 +140,14 @@ jobs:
           tags: openvino/cvat_ui:latest
           load: true
 
-      - name: Caching CVAT Elasticsearch
+      - name: Building CVAT Elasticsearch
         uses: docker/build-push-action@v2
         with:
           context: ./components/analytics/elasticsearch/
           file: ./components/analytics/elasticsearch/Dockerfile
           cache-from: type=local,src=/tmp/cvat_cache_elasticsearch
-          tags: openvino/cvat_ui:latest
-          load: cvat_elasticsearch:latest
+          tags: cvat_elasticsearch:latest
+          load: true
           build-args:
             ELK_VERSION: 6.8.23
 
@@ -154,7 +155,7 @@ jobs:
         id: meta-server
         uses: docker/metadata-action@master
         with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.SERVER_IMAGE_TEST_REPO }}
+          images: ${{ secrets.DOCKERHUB_WORKSPACE }}/${{ env.SERVER_IMAGE_TEST_REPO }}
           tags: |
             type=raw,value=${{ inputs.ref }}
 
@@ -235,14 +236,18 @@ jobs:
         with:
           ref: ${{ inputs.ref }}
 
+      - uses: actions/setup-node@v2
+        with:
+            node-version: '16.x'
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@master
+
       - name: Getting CVAT UI cache from the default branch
         uses: actions/cache@v3
         with:
           path: /tmp/cvat_cache_ui
           key: ${{ runner.os }}-build-ui-${{ needs.search_cache.outputs.sha }}
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@master
 
       - name: Building CVAT UI image
         uses: docker/build-push-action@v2
@@ -257,7 +262,7 @@ jobs:
         id: meta-server
         uses: docker/metadata-action@master
         with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.SERVER_IMAGE_TEST_REPO }}
+          images: ${{ secrets.DOCKERHUB_WORKSPACE }}/${{ env.SERVER_IMAGE_TEST_REPO }}
           tags: |
             type=raw,value=${{ inputs.ref }}
 
@@ -271,10 +276,6 @@ jobs:
         run: |
           docker pull ${{ steps.meta-server.outputs.tags }}
           docker tag ${{ steps.meta-server.outputs.tags }} openvino/cvat_server
-
-      - uses: actions/setup-node@v2
-        with:
-            node-version: '16.x'
 
       - name: Run CVAT instance
         run: |
