@@ -57,8 +57,8 @@ jobs:
     needs: search_cache
     runs-on: ubuntu-latest
     outputs:
-      failed: ${{ steps.fail-status.outputs.status }}
-      cancelled: ${{ steps.cancel-status.outputs.status }}
+      failed: ${{ steps.fail-status.outputs.fail_status }}
+      cancelled: ${{ steps.cancel-status.outputs.cancel_status }}
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -104,14 +104,14 @@ jobs:
         if: ${{ failure() }}
         run: |
           STATUS="true"
-          echo ::set-output name=status:${STATUS}
+          echo ::set-output name=fail_status:${STATUS}
 
       - name: Check cancelling
         id: cancel-status
         if: ${{ cancelled() }}
         run: |
           STATUS="true"
-          echo ::set-output name=status:${STATUS}
+          echo ::set-output name=cancel_status:${STATUS}
 
   unit_testing:
     needs: [build, search_cache]
