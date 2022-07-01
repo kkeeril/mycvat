@@ -12,15 +12,6 @@ on:
         required: true
       DOCKERHUB_TOKEN:
         required: true
-    outputs:
-      build_cancelled:
-        value: ${{ jobs.build.outputs.cancelled }}
-      build_failed:
-        value: ${{ jobs.build.outputs.failed }}
-      unit_testing_failed:
-        value: ${{ jobs.unit_testing.outputs.failed }}
-      e2e_testing_failed:
-        value: ${{ jobs.e2e_testing.outputs.failed }}
 
 env:
   SERVER_IMAGE_TEST_REPO: cvat_server
@@ -56,9 +47,6 @@ jobs:
   build:
     needs: search_cache
     runs-on: ubuntu-latest
-    outputs:
-      failed: ${{ steps.fail-status.outputs.failstatus }}
-      cancelled: ${{ steps.cancel-status.outputs.cancelstatus }}
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -116,8 +104,6 @@ jobs:
   unit_testing:
     needs: [build, search_cache]
     runs-on: ubuntu-latest
-    outputs:
-      failed: ${{ steps.set-status.outputs.unitfailed }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -241,19 +227,10 @@ jobs:
           name: cvat_container_logs
           path: $LOGS_DIR
 
-      - name: Set status code
-        if: failure()
-        id: set-status
-        run: |
-          STATUS="true"
-          echo "::set-output name=unitfailed:${STATUS}"
-
   e2e_testing:
     if: github.ref == 'refs/heads/qqq'
     needs: [build, search_cache]
     runs-on: ubuntu-latest
-    outputs:
-      failed: ${{ steps.set-status.outputs.status }}
     strategy:
       fail-fast: false
       matrix:
@@ -371,10 +348,3 @@ jobs:
         with:
           name: cypress_screenshots_${{ matrix.specs }}
           path: ${{ github.workspace }}/tests/cypress/screenshots
-
-      - name: Set status code
-        id: set-status
-        if: ${{ failure() }}
-        run: |
-          STATUS="true"
-          echo ::set-output name=status:${STATUS}
