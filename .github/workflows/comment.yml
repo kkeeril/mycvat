@@ -63,7 +63,6 @@ jobs:
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
   send_status:
-  to do fix this job
     runs-on: ubuntu-latest
     needs: [run-full, verify_author]
     if: always()
@@ -93,6 +92,11 @@ jobs:
             BODY=$BODY"\n:x: E2E tests failed"
           else
             BODY=$BODY"\n:heavy_check_mark: E2E tests passed"
+          fi
+
+          if [[ "${{ needs.run-full.outputs.build_cancelled }}" == "true" ]]
+          then
+            BODY=":x: Workflows cancelled"
           fi
 
           BODY=$BODY"\n :page_facing_up: See logs [here](${WORKFLOW_RUN_URL})"

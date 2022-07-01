@@ -245,7 +245,7 @@ jobs:
         id: set-status
         if: ${{ failure() }}
         run: |
-          STATUS="failed"
+          STATUS="true"
           echo ::set-output name=status:${STATUS}
 
   e2e_testing:
@@ -376,5 +376,5 @@ jobs:
         id: set-status
         if: ${{ failure() }}
         run: |
-          STATUS="failed"
+          STATUS="true"
           echo ::set-output name=status:${STATUS}
