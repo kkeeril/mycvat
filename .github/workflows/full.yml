@@ -100,18 +100,18 @@ jobs:
           labels: ${{ steps.meta-server.outputs.labels }}
 
       - name: Check failure
-        id: fail-status
         if: ${{ failure() }}
+        id: fail-status
         run: |
           STATUS="true"
-          echo ::set-output name=failstatus:${STATUS}
+          echo "::set-output name=failstatus:${STATUS}"
 
       - name: Check cancelling
-        id: cancel-status
         if: ${{ cancelled() }}
+        id: cancel-status
         run: |
           STATUS="true"
-          echo ::set-output name=cancelstatus:${STATUS}
+          echo "::set-output name=cancelstatus:${STATUS}"
 
   unit_testing:
     needs: [build, search_cache]
@@ -242,11 +242,11 @@ jobs:
           path: $LOGS_DIR
 
       - name: Set status code
-        id: set-status
         if: ${{ failure() }}
+        id: set-status
         run: |
           STATUS="true"
-          echo ::set-output name=unitfailed:${STATUS}
+          echo "::set-output name=unitfailed:${STATUS}"
 
   e2e_testing:
     if: github.ref == 'refs/heads/qqq'
