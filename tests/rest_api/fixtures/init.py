@@ -54,14 +54,10 @@ def pytest_addoption(parser):
     )
 
 
-def _run(command, capture_output=True):
+def _run(command):
     try:
-        if not capture_output:
-            proc = run(command.split(), check=True)  # nosec
-        else:
-            proc = run(command.split(), check=True, stdout=PIPE, stderr=PIPE)  # nosec
-            return proc.stdout.decode(), proc.stderr.decode()
-        return '', ''
+        proc = run(command.split(), check=True, stdout=PIPE, stderr=PIPE)  # nosec
+        return proc.stdout.decode(), proc.stderr.decode()
     except CalledProcessError as exc:
         pytest.exit(
             f"Command failed: {command}.\n"
@@ -104,10 +100,8 @@ def wait_for_server():
     for _ in range(60):
         response = requests.get(get_api_url("users/self"))
         if response.status_code == HTTPStatus.UNAUTHORIZED:
-            return
-        sleep(2)
-    pytest.exit("Cannot get answer from server")
-
+            break
+        sleep(5)
 
 def restore_data_volumes():
     docker_cp(osp.join(CVAT_DB_DIR, "cvat_data.tar.bz2"), f"{PREFIX}_cvat_1:/tmp/cvat_data.tar.bz2")
@@ -122,11 +116,13 @@ def start_services(rebuild=False):
             f"List of running containers: {', '.join(running_containers)}"
         )
 
-    _run(f"docker-compose -p {PREFIX} -f {' -f '.join(DC_FILES)} up -d " + "--build" * rebuild, capture_output=False)
+    out = _run(f"docker-compose -p {PREFIX} -f {' -f '.join(DC_FILES)} up -d " + "--build" * rebuild)[1]
 
     restore_data_volumes()
     docker_cp(osp.join(CVAT_DB_DIR, "restore.sql"), f"{PREFIX}_cvat_db_1:/tmp/restore.sql")
     docker_cp(osp.join(CVAT_DB_DIR, "data.json"), f"{PREFIX}_cvat_1:/tmp/data.json")
+
+    return out
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -151,7 +147,7 @@ def services(request):
         out = set(l.split()[1] for l in out.split("\n") if "done" in l.split())
         pytest.exit(f"All testing  containers are stopped: {', '.join(out)}", returncode=0)
 
-    start_services(rebuild)
+    started_services = start_services(rebuild)
     wait_for_server()
 
     exec_cvat("python manage.py loaddata /tmp/data.json")
@@ -159,7 +155,7 @@ def services(request):
 
     if start:
         pytest.exit(
-            f"All necessary containers have been created and started:",
+            f"All necessary containers have been created and started: {started_services}",
             returncode=0,
         )
 
