@@ -100,18 +100,17 @@ jobs:
           labels: ${{ steps.meta-server.outputs.labels }}
 
       - name: Check failure
-        if: failure()
+        if: always()
         id: fail-status
         run: |
-          STATUS="true"
           echo "::set-output name=failstatus:${STATUS}"
 
       - name: Check cancelling
         if: cancelled()
         id: cancel-status
         run: |
-          STATUS="true"
-          echo "::set-output name=cancelstatus:${STATUS}"
+          echo ${{ job.status }}
+          echo ::set-output name=cancelstatus:${{ job.status }}
 
   unit_testing:
     needs: [build, search_cache]
