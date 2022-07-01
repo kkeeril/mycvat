@@ -72,7 +72,7 @@ jobs:
       - name: Send status in comments
         run: |
           BODY=""
-          echo ${{ needs.run-full.status }}
+          echo ${{ needs.run-full.result }}
           echo ${{ needs.run-full.outputs.build_failed }}
           echo ${{ needs.run-full.outputs.unit_testing_failed }}
           # success
