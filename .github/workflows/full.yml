@@ -82,7 +82,7 @@ jobs:
         with:
           cache-from: type=local,src=/tmp/cvat_cache_server
           context: .
-          file: Dockerfilekfjawel
+          file: Dockerfile
           push: true
           tags: ${{ steps.meta-server.outputs.tags }}
           labels: ${{ steps.meta-server.outputs.labels }}
@@ -138,7 +138,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: ./Dockerfilefkjdal.ui
+          file: ./Dockerfile.ui
           cache-from: type=local,src=/tmp/cvat_cache_ui
           tags: openvino/cvat_ui:latest
           load: true
@@ -228,7 +228,6 @@ jobs:
           path: $LOGS_DIR
 
   e2e_testing:
-    if: github.ref == 'refs/heads/qqq'
     needs: [build, search_cache]
     runs-on: ubuntu-latest
     strategy:
