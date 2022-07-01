@@ -12,13 +12,6 @@ on:
         required: true
       DOCKERHUB_TOKEN:
         required: true
-    outputs:
-      build_status:
-        value: ${{ jobs.build.outputs.status }}
-      unit_testing_status:
-        value: ${{ jobs.unit_testing.outputs.status }}
-      e2e_testing_status:
-        value: ${{ jobs.e2e_testing.outputs.status }}
 
 env:
   SERVER_IMAGE_TEST_REPO: cvat_server
@@ -54,8 +47,6 @@ jobs:
   build:
     needs: search_cache
     runs-on: ubuntu-latest
-    outputs:
-      status: ${{ steps.set-status.outputs.status }}
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -96,18 +87,23 @@ jobs:
           tags: ${{ steps.meta-server.outputs.tags }}
           labels: ${{ steps.meta-server.outputs.labels }}
 
-      - name: Set status code
-        id: set-status
-        if: ${{ failure() }} || ${{ cancelled() }}
+      - name: Check failure
+        if: always()
+        id: fail-status
         run: |
-          STATUS="failed"
-          echo ::set-output name=status:${STATUS}
+          echo ${{ job.status }}
+          echo ::set-output name=failstatus:${{ job.status }}
+
+      - name: Check cancelling
+        if: cancelled()
+        id: cancel-status
+        run: |
+          echo ${{ job.status }}
+          echo ::set-output name=cancelstatus:${{ job.status }}
 
   unit_testing:
     needs: [build, search_cache]
     runs-on: ubuntu-latest
-    outputs:
-      status: ${{ steps.set-status.outputs.status }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -132,6 +128,12 @@ jobs:
           path: /tmp/cvat_cache_elasticsearch
           key: ${{ runner.os }}-build-elasticsearch-${{ needs.search_cache.outputs.sha }}
 
+      - name: Getting CVAT Logstash cache from the default branch
+        uses: actions/cache@v3
+        with:
+          path: /tmp/cvat_cache_logstash
+          key: ${{ runner.os }}-build-logstash-${{ needs.search_cache.outputs.sha }}
+
       - name: Building CVAT UI image
         uses: docker/build-push-action@v2
         with:
@@ -148,6 +150,16 @@ jobs:
           file: ./components/analytics/elasticsearch/Dockerfile
           cache-from: type=local,src=/tmp/cvat_cache_elasticsearch
           tags: cvat_elasticsearch:latest
+          load: true
+          build-args: ELK_VERSION=6.8.23
+
+      - name: Building CVAT Logstash
+        uses: docker/build-push-action@v2
+        with:
+          context: ./components/analytics/logstash/
+          file: ./components/analytics/logstash/Dockerfile
+          cache-from: type=local,src=/tmp/cvat_cache_logstash
+          tags: cvat_logstash:latest
           load: true
           build-args: ELK_VERSION=6.8.23
 
@@ -215,18 +227,9 @@ jobs:
           name: cvat_container_logs
           path: $LOGS_DIR
 
-      - name: Set status code
-        id: set-status
-        if: ${{ failure() }} || ${{ cancelled() }}
-        run: |
-          STATUS="failed"
-          echo ::set-output name=status:${STATUS}
-
   e2e_testing:
     needs: [build, search_cache]
     runs-on: ubuntu-latest
-    outputs:
-      status: ${{ steps.set-status.outputs.status }}
     strategy:
       fail-fast: false
       matrix:
@@ -344,10 +347,3 @@ jobs:
         with:
           name: cypress_screenshots_${{ matrix.specs }}
           path: ${{ github.workspace }}/tests/cypress/screenshots
-
-      - name: Set status code
-        id: set-status
-        if: ${{ failure() }} || ${{ cancelled() }}
-        run: |
-          STATUS="failed"
-          echo ::set-output name=status:${STATUS}
