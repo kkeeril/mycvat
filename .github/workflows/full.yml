@@ -103,7 +103,8 @@ jobs:
         if: always()
         id: fail-status
         run: |
-          echo "::set-output name=failstatus:${STATUS}"
+          echo ${{ job.status }}
+          echo ::set-output name=failstatus:${{ job.status }}
 
       - name: Check cancelling
         if: cancelled()
