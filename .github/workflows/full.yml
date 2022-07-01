@@ -100,14 +100,14 @@ jobs:
           labels: ${{ steps.meta-server.outputs.labels }}
 
       - name: Check failure
-        if: ${{ failure() }}
+        if: failure()
         id: fail-status
         run: |
           STATUS="true"
           echo "::set-output name=failstatus:${STATUS}"
 
       - name: Check cancelling
-        if: ${{ cancelled() }}
+        if: cancelled()
         id: cancel-status
         run: |
           STATUS="true"
@@ -242,7 +242,7 @@ jobs:
           path: $LOGS_DIR
 
       - name: Set status code
-        if: ${{ failure() }}
+        if: failure()
         id: set-status
         run: |
           STATUS="true"
