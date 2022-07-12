@@ -6,6 +6,7 @@ on:
 
 env:
   SERVER_IMAGE_TEST_REPO: cvat_server
+  UI_IMAGE_TEST_REPO: cvat_ui
 
 jobs:
   check_updates:
@@ -68,7 +69,7 @@ jobs:
           echo ::set-output name=default_branch::${DEFAULT_BRANCH}
           echo ::set-output name=sha::${SHA}
 
-  build:
+  build_server:
     needs: search_cache
     runs-on: ubuntu-latest
     steps:
@@ -107,8 +108,52 @@ jobs:
           tags: ${{ steps.meta-server.outputs.tags }}
           labels: ${{ steps.meta-server.outputs.labels }}
 
+  build_ui:
+    needs: search_cache
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME_2 }}
+          password: ${{ secrets.DOCKERHUB_TOKEN_2 }}
+
+      - name: CVAT UI. Getting cache from the default branch
+        uses: actions/cache@v3
+        with:
+          path: /tmp/cvat_cache_ui
+          key: ${{ runner.os }}-build-ui-${{ needs.search_cache.outputs.sha }}
+
+      - name: CVAT UI. Extract metadata (tags, labels) for Docker
+        id: meta-ui
+        uses: docker/metadata-action@master
+        with:
+          images: ${{ secrets.DOCKERHUB_USERNAME_2 }}/${{ env.UI_IMAGE_TEST_REPO }}
+          tags:
+            type=raw,value=nightly
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Instrumentation of the code then rebuilding the CVAT UI
+        run: |
+          npm ci
+          npm run coverage
+
+      - name: CVAT UI. Build and push
+        uses: docker/build-push-action@v3
+        with:
+          cache-from: type=local,src=/tmp/cvat_cache_ui
+          context: .
+          file: Dockerfile.ui
+          push: true
+          tags: ${{ steps.meta-ui.outputs.tags }}
+          labels: ${{ steps.meta-ui.outputs.labels }}
+
   unit_testing:
-    needs: build
+    needs: build_server
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -184,7 +229,7 @@ jobs:
           docker-compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.ci.yml down -v
 
   e2e_testing:
-    needs: build
+    needs: [build_server, build_ui]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -195,21 +240,6 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-
-      - name: Getting CVAT UI cache from the default branch
-        uses: actions/cache@v3
-        with:
-          path: /tmp/cvat_cache_ui
-          key: ${{ runner.os }}-build-ui-${{ needs.search_cache.outputs.sha }}
-
-      - name: Building CVAT UI image
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./Dockerfile.ui
-          cache-from: type=local,src=/tmp/cvat_cache_ui
-          tags: openvino/cvat_ui:latest
-          load: true
 
       - name: CVAT server. Extract metadata (tags, labels) for Docker
         id: meta-server
@@ -230,11 +260,24 @@ jobs:
           docker pull ${{ steps.meta-server.outputs.tags }}
           docker tag ${{ steps.meta-server.outputs.tags }} openvino/cvat_server
 
-      - name: Instrumentation of the code then rebuilding the CVAT UI
+      - name: CVAT UI. Extract metadata (tags, labels) for Docker
+        id: meta-ui
+        uses: docker/metadata-action@master
+        with:
+          images: ${{ secrets.DOCKERHUB_USERNAME_2 }}/${{ env.UI_IMAGE_TEST_REPO }}
+          tags:
+            type=raw,value=nightly
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME_2 }}
+          password: ${{ secrets.DOCKERHUB_TOKEN_2 }}
+
+      - name: Pull CVAT UI image
         run: |
-          npm ci
-          npm run coverage
-          docker-compose -f docker-compose.yml -f docker-compose.dev.yml -f components/serverless/docker-compose.serverless.yml build cvat_ui
+          docker pull ${{ steps.meta-ui.outputs.tags }}
+          docker tag ${{ steps.meta-ui.outputs.tags }} openvino/cvat_ui
 
       - name: Run CVAT instance
         run: |
