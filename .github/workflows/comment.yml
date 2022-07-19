@@ -67,7 +67,7 @@ jobs:
   send_status:
     runs-on: ubuntu-latest
     needs: [run-full, verify_author]
-    if: needs.run-full.result != 'skipped' && (success() || failure() || cancelled())
+    if: needs.run-full.result != 'skipped' && always()
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
