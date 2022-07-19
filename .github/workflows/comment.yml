@@ -67,12 +67,11 @@ jobs:
   send_status:
     runs-on: ubuntu-latest
     needs: [run-full, verify_author]
-    if: always()
+    if: needs.run-full.result != 'skipped' && (success() || failure())
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Send status in comments
-        if: needs.run-full.result != 'skipped'
         run: |
           BODY=""
 
