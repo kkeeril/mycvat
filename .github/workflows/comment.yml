@@ -72,6 +72,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Send status in comments
+        if: steps.run-full.result != 'skipped'
         run: |
           BODY=""
 
