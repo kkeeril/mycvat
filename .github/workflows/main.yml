@@ -12,6 +12,9 @@ on:
 
 env:
   SERVER_IMAGE_TEST_REPO: cvat_server
+  UI_IMAGE_TEST_REPO: cvat_ui
+  REGISTRY: ghcr.io
+  SERVER_IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   search_cache:
@@ -53,11 +56,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
+      - name: Log in to the Container registry
+        uses: docker/login-action@master
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: CVAT server. Getting cache from the default branch
         uses: actions/cache@v3
@@ -65,11 +69,23 @@ jobs:
           path: /tmp/cvat_cache_server
           key: ${{ runner.os }}-build-server-${{ needs.search_cache.outputs.sha }}
 
+      - name: CVAT UI. Getting cache from the default branch
+        uses: actions/cache@v3
+        with:
+          path: /tmp/cvat_cache_ui
+          key: ${{ runner.os }}-build-ui-${{ needs.search_cache.outputs.sha }}
+
       - name: CVAT server. Extract metadata (tags, labels) for Docker
         id: meta-server
         uses: docker/metadata-action@master
         with:
-          images: ${{ secrets.DOCKERHUB_WORKSPACE }}/${{ env.SERVER_IMAGE_TEST_REPO }}
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.SERVER_IMAGE_TEST_REPO }}
+
+      - name: CVAT UI. Extract metadata (tags, labels) for Docker
+        id: meta-ui
+        uses: docker/metadata-action@master
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.UI_IMAGE_TEST_REPO }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -84,6 +100,16 @@ jobs:
           tags: ${{ steps.meta-server.outputs.tags }}
           labels: ${{ steps.meta-server.outputs.labels }}
 
+      - name: CVAT UI. Build and push
+        uses: docker/build-push-action@v3
+        with:
+          cache-from: type=local,src=/tmp/cvat_cache_ui
+          context: .
+          file: Dockerfile.ui
+          push: true
+          tags: ${{ steps.meta-ui.outputs.tags }}
+          labels: ${{ steps.meta-ui.outputs.labels }}
+
   unit_testing:
     needs: [build, search_cache]
     runs-on: ubuntu-latest
@@ -94,40 +120,35 @@ jobs:
         with:
           python-version: '3.8'
 
-      - name: Getting CVAT UI cache from the default branch
-        uses: actions/cache@v3
-        with:
-          path: /tmp/cvat_cache_ui
-          key: ${{ runner.os }}-build-ui-${{ needs.search_cache.outputs.sha }}
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-
-      - name: Building CVAT UI image
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./Dockerfile.ui
-          cache-from: type=local,src=/tmp/cvat_cache_ui
-          tags: openvino/cvat_ui:latest
-          load: true
 
       - name: CVAT server. Extract metadata (tags, labels) for Docker
         id: meta-server
         uses: docker/metadata-action@master
         with:
-          images: ${{ secrets.DOCKERHUB_WORKSPACE }}/${{ env.SERVER_IMAGE_TEST_REPO }}
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.SERVER_IMAGE_TEST_REPO }}
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
+      - name: CVAT UI. Extract metadata (tags, labels) for Docker
+        id: meta-ui
+        uses: docker/metadata-action@master
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.UI_IMAGE_TEST_REPO }}
 
-      - name: Pull CVAT server image
+      - name: Log in to the Container registry
+        uses: docker/login-action@master
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull CVAT images
         run: |
           docker pull ${{ steps.meta-server.outputs.tags }}
-          docker tag ${{ steps.meta-server.outputs.tags }} openvino/cvat_server
+          docker tag ${{ steps.meta-server.outputs.tags }} cvat/server
+
+          docker pull ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.UI_IMAGE_TEST_REPO }}
+          docker tag ${{ steps.meta-ui.outputs.tags }} cvat/ui
 
       - name: Running OPA tests
         run: |
@@ -137,6 +158,7 @@ jobs:
 
       - name: Running REST API tests
         run: |
+          pip3 install --user cvat-sdk/
           pip3 install --user -r tests/rest_api/requirements.txt
           pytest tests/rest_api/ -k 'GET' -s
           pytest tests/rest_api/ --stop-services
@@ -155,7 +177,7 @@ jobs:
           -c 'python manage.py test cvat/apps cvat-cli -k tasks_id -k lambda -k share -v 2'
 
           docker-compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.ci.yml run cvat_ci /bin/bash \
-          -c 'cd cvat-data && npm ci --ignore-scripts && cd ../cvat-core && npm ci --ignore-scripts && npm run test'
+          -c 'yarn --frozen-lockfile --ignore-scripts && yarn workspace cvat-core run test'
 
       - name: Creating a log file from cvat containers
         if: failure()
@@ -176,6 +198,7 @@ jobs:
           path: $LOGS_DIR
 
   e2e_testing:
+    if: github.repository == 'fkjas;l'
     needs: [build, search_cache]
     runs-on: ubuntu-latest
     strategy:
@@ -185,40 +208,34 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Getting CVAT UI cache from the default branch
-        uses: actions/cache@v3
-        with:
-          path: /tmp/cvat_cache_ui
-          key: ${{ runner.os }}-build-ui-${{ needs.search_cache.outputs.sha }}
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-
-      - name: Building CVAT UI image
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./Dockerfile.ui
-          cache-from: type=local,src=/tmp/cvat_cache_ui
-          tags: openvino/cvat_ui:latest
-          load: true
 
       - name: CVAT server. Extract metadata (tags, labels) for Docker
         id: meta-server
         uses: docker/metadata-action@master
         with:
-          images: ${{ secrets.DOCKERHUB_WORKSPACE }}/${{ env.SERVER_IMAGE_TEST_REPO }}
+          images: ${{ secrets.DOCKERHUB_CI_WORKSPACE }}/${{ env.SERVER_IMAGE_TEST_REPO }}
+
+      - name: CVAT UI. Extract metadata (tags, labels) for Docker
+        id: meta-ui
+        uses: docker/metadata-action@master
+        with:
+          images: ${{ secrets.DOCKERHUB_CI_WORKSPACE }}/${{ env.UI_IMAGE_TEST_REPO }}
 
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_CI_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_CI_TOKEN }}
 
-      - name: Pull CVAT server image
+      - name: Pull CVAT images
         run: |
           docker pull ${{ steps.meta-server.outputs.tags }}
-          docker tag ${{ steps.meta-server.outputs.tags }} openvino/cvat_server
+          docker tag ${{ steps.meta-server.outputs.tags }} cvat/server
+
+          docker pull ${{ steps.meta-ui.outputs.tags }}
+          docker tag ${{ steps.meta-ui.outputs.tags }} cvat/ui
 
       - uses: actions/setup-node@v2
         with:
@@ -257,7 +274,7 @@ jobs:
           docker exec -i cvat /bin/bash -c "echo \"from django.contrib.auth.models import User; User.objects.create_superuser('${DJANGO_SU_NAME}', '${DJANGO_SU_EMAIL}', '${DJANGO_SU_PASSWORD}')\" | python3 ~/manage.py shell"
 
           cd ./tests
-          npm ci
+          yarn --frozen-lockfile
 
           if [ ${{ matrix.specs }} == 'canvas3d_functionality' ]; then
             npx cypress run --headed --browser chrome --config-file pr_cypress_canvas3d.json
@@ -283,3 +300,4 @@ jobs:
         with:
           name: cypress_screenshots_${{ matrix.specs }}
           path: ${{ github.workspace }}/tests/cypress/screenshots
+
