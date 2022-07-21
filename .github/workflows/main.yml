@@ -147,7 +147,7 @@ jobs:
           docker pull ${{ steps.meta-server.outputs.tags }}
           docker tag ${{ steps.meta-server.outputs.tags }} cvat/server
 
-          docker pull ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.UI_IMAGE_TEST_REPO }}
+          docker pull ${{ steps.meta-ui.outputs.tags }}
           docker tag ${{ steps.meta-ui.outputs.tags }} cvat/ui
 
       - name: Running OPA tests
