@@ -150,6 +150,7 @@ jobs:
 
           docker pull ${{ steps.meta-ui.outputs.tags }}
           docker tag ${{ steps.meta-ui.outputs.tags }} cvat/ui
+          docker images
 
       - name: Running OPA tests
         run: |
