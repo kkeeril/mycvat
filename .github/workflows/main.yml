@@ -54,7 +54,7 @@ jobs:
   build:
     needs: search_cache
     runs-on: ubuntu-latest
-    permission:
+    permissions:
       packages: write
     steps:
       - uses: actions/checkout@v2
