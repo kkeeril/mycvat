@@ -1,5 +1,5 @@
 // lint-staged.config.js
-// q
+// qq
 const micromatch = require('micromatch');
 
 function containsInPath(pattern, list) {
